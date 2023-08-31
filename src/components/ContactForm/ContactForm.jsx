@@ -1,33 +1,36 @@
 import { useDispatch, useSelector } from 'react-redux';
 import style from './ContactForm.module.css';
-import React, { useState } from 'react';
-import { addNewContact } from 'redux/reducer';
+import React, { useEffect, useState } from 'react';
 import { nanoid } from 'nanoid';
 import { getContacts } from 'redux/selectors';
 import { toast } from 'react-toastify';
+import { requestAddContact } from 'redux/ContactFormReduser';
 
 function ContactForm() {
   const dispatch = useDispatch();
   const contacts = useSelector(getContacts);
 
   const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+  const [phone, setPhone] = useState('');
 
   const handleChangeName = event => {
     setName(() => event.target.value);
   };
 
   const handleChangeNumber = event => {
-    setNumber(() => event.target.value);
+    setPhone(() => event.target.value);
   };
 
   const handleSubmit = event => {
     event.preventDefault();
 
+    const today = new Date();
+    const now = today.toLocaleDateString();
     const newContact = {
       id: nanoid(),
-      name: name,
-      number: number,
+      name,
+      phone,
+      createdAt: now,
     };
 
     const isDublicated = contacts.some(elem => elem.name === newContact.name);
@@ -35,10 +38,10 @@ function ContactForm() {
       return toast.error('Contact is alredy exsist');
     }
 
-    dispatch(addNewContact(newContact));
+    dispatch(requestAddContact(newContact));
 
     setName(() => '');
-    setNumber(() => '');
+    setPhone(() => '');
   };
 
   return (
@@ -57,10 +60,10 @@ function ContactForm() {
       <input
         type="tel"
         name="number"
-        pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
+        pattern="^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$"
         title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
         required
-        value={number}
+        value={phone}
         onChange={handleChangeNumber}
       />
       <button type="submit">Add contact</button>

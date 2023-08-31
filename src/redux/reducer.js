@@ -1,35 +1,53 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { fetchContacts } from 'components/Api/Api';
+
+export const requestContacts = createAsyncThunk(
+  'contacts/requestContacts',
+  async (_, thunkApi) => {
+    try {
+      const postData = await fetchContacts();
+      return postData;
+    } catch (error) {
+      return thunkApi.rejectWithValue(error.message);
+    }
+  }
+);
 
 const initialState = {
   contacts: [],
   filter: '',
+  isLoading: false,
+  error: null,
 };
 
 const contactsSlice = createSlice({
   // Ім'я слайсу
   name: 'contacts',
   // Початковий стан редюсера слайсу
-  initialState: initialState,
+  initialState,
   // Об'єкт редюсерів
   reducers: {
-    addNewContact(state, action) {
-      state.contacts.push(action.payload);
-    },
-    deleteContact(state, action) {
-      // state.contacts.filter(elem => elem.id !== action.payload);
-      const deletedContactIndex = state.contacts.findIndex(
-        contact => contact.id === action.payload
-      );
-      state.contacts.splice(deletedContactIndex, 1);
-    },
     findContact(state, action) {
       state.filter = action.payload;
     },
   },
+  extraReducers: builder =>
+    builder
+      .addCase(requestContacts.pending, state => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(requestContacts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.contacts = action.payload;
+      })
+      .addCase(requestContacts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      }),
 });
 
 // Генератори екшенів
-export const { addNewContact, deleteContact, findContact, filterContacts } =
-  contactsSlice.actions;
+export const {  findContact } = contactsSlice.actions;
 // Редюсер слайсу
 export const contactsReducer = contactsSlice.reducer;
