@@ -1,10 +1,9 @@
 import { useDispatch, useSelector } from 'react-redux';
 import style from './ContactForm.module.css';
 import React, { useState } from 'react';
-import { nanoid } from 'nanoid';
 import { getContacts } from 'redux/selectors';
 import { toast } from 'react-toastify';
-import { requestAddContact } from 'redux/ContactFormReduser';
+import { requestAddContact } from 'redux/operations';
 
 function ContactForm() {
   const dispatch = useDispatch();
@@ -24,16 +23,16 @@ function ContactForm() {
   const handleSubmit = event => {
     event.preventDefault();
 
-    const today = new Date();
-    const now = today.toLocaleDateString();
     const newContact = {
-      id: nanoid(),
       name,
       phone,
-      createdAt: now,
     };
 
-    const isDublicated = contacts.some(elem => elem.name === newContact.name);
+    const isDublicated = contacts.some(
+      elem =>
+        elem.name.toLowerCase().trim() ===
+        newContact.name.toLocaleLowerCase().trim()
+    );
     if (isDublicated) {
       return toast.error('Contact is alredy exsist');
     }
